@@ -1,0 +1,52 @@
+<dom-module id="styles-global">
+    <template>
+        <style>
+            :root {
+                --kijiji-immo-map-primary-color: #2C2F6B;
+                --kijiji-immo-map-secondary-color: #e0c8ff;
+                --kijiji-immo-map-background-color: #eeeeee;
+                --kijiji-immo-map-font-color: #202020;
+                --kijiji-immo-map-font-light-color: #f6f6f6;
+                --content-background-color: var(--kijiji-immo-map-font-light-color);
+            }
+
+            :host {
+                display: block;
+                background-color: var(--kijiji-immo-map-background-color);
+                font-family: 'Roboto', 'Noto', sans-serif;
+            }
+
+            [hidden] {
+                display: none !important;
+            }
+
+            header {
+                text-align: center;
+            }
+
+            header > h1 {
+                margin: 0 0 4px 0;
+                font-size: 1.3em;
+                font-weight: 500;
+            }
+
+            .logo {
+                text-align: center;
+            }
+
+            .logo a {
+                font-size: x-large;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                color: var(--kijiji-immo-map-font-light-color);
+                text-decoration: none;
+
+                /* required for IE 11, so this <a> can receive pointer events */
+                display: inline-block;
+                pointer-events: auto;
+            }
+
+        </style>
+    </template>
+</dom-module>

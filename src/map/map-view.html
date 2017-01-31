@@ -1,0 +1,570 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="map-infowindow.html">
+<link rel="import" href="../utils/kijiji-utils.html">
+<link rel="import" href="../../bower_components/google-map/google-map.html">
+<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<dom-module id="map-view">
+    <template>
+        <style include="styles-global">
+            #searchMenu {
+                width: 240px;
+                height: 100%;
+                padding: 15px;
+                box-sizing: border-box;
+                overflow-y: auto;
+                font-size: small;
+            }
+
+            #searchMenu paper-button {
+                background-color: var(--paper-green-800);
+                width: 100%;
+                margin: 30px 0 0;
+                --paper-button-raised-keyboard-focus: {
+                    background-color: var(--paper-green-500) !important;
+                    color: white !important;
+                };
+            }
+
+            #searchMenu paper-button:active {
+                background-color: var(--paper-green-500);
+            }
+
+            #searchMenu paper-dropdown-menu {
+                text-transform: capitalize;
+                width: 100%;
+
+                --paper-input-container-input: {
+                    text-transform: capitalize;
+                    font-size: small;
+                };
+
+                --paper-input-container-label: {
+                    color: #b5b5b5;
+                    font-size: small;
+                };
+            }
+
+            #searchMenu paper-input {
+                width: 100%;
+                --paper-input-container-input: {
+                    font-size: small;
+                };
+                --paper-input-container-label: {
+                    color: #b5b5b5;
+                }
+            }
+
+            #statsTable {
+                padding: 30px 0 0 0;
+            }
+
+            google-map {
+                font-size: small;
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 240px;
+                height: auto;
+            }
+
+
+        </style>
+        <div id="searchMenu">
+            <paper-dropdown-menu id='regionDropDown' label="Région">
+                <paper-listbox id='regionListBox' class="dropdown-content" selected="{{selectedRegion}}">
+                    <template is="dom-repeat" items="[[regions]]" as="region">
+                        <paper-item>[[region.nameFr]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-dropdown-menu id='cityDropDown' label="J'habite à">
+                <paper-listbox id='cityListBox' on-iron-select="loadCategories" class="dropdown-content"
+                               selected="{{selectedCity}}">
+                    <template is="dom-repeat" items="[[cities]]" as="city">
+                        <paper-item link="[[city.link]]">[[city.name]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-dropdown-menu id='categoriesDropDown' label="Je cherche des">
+                <paper-listbox id='categoriesListBox' class="dropdown-content" selected="{{selectedCategory}}">
+                    <template is="dom-repeat" items="[[categories]]" as="category">
+                        <paper-item url="[[category.url]]">[[category.name]]</paper-item>
+                    </template>
+                </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-input value="{{mapRadius::change}}" label="Dans un rayon de">{{mapRadius}}
+                <div suffix>km</div>
+            </paper-input>
+            <paper-input value="{{lowPrice::change}}" label="Prix Min.">
+                <div suffix>$</div>
+            </paper-input>
+            <paper-input value="{{highPrice::change}}" label="Prix Max.">
+                <div suffix>$</div>
+            </paper-input>
+            <paper-input id='keywordsInput' value="{{keywords::change}}" label="Mots clés">
+            </paper-input>
+
+            <paper-button raised on-click="startSearch">Recherche</paper-button>
+
+
+            <table id="statsTable">
+                <tbody>
+                <tr>
+                    <td>Pages Lu : [[numberOfPages]] (max. 10)</td>
+                </tr>
+                <tr>
+                    <td>Annonces : [[adsProcessed]] / [[totalAds]]</td>
+                </tr>
+                <tr>
+                    <td>Annonces Introuvable: [[adsMissed]]</td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+        <google-map id='googleMaps' latitude="45.5017" longitude="-73.5673" api-key="AIzaSyBLJf2vsTwDfYsee2pv7dJ-NO83S2CF7s0" drag-events fit-to-markers></google-map>
+
+        <input type="hidden" is="iron-input" bind-value="[[selectedCategory]]">
+        <input type="hidden" is="iron-input" bind-value="[[selectedRegion]]">
+        <input type="hidden" is="iron-input" bind-value="[[selectedCity]]">
+
+    </template>
+    <script>
+        var timeouts = [];
+
+        Polymer( {
+            /**
+             *
+             */
+            is: 'map-view',
+
+            listeners: {
+                'google-map-marker-click': 'googleMapMarkerClicked',
+                'google-map-dragstart': 'googleMapDragged'
+            },
+
+            behaviors: [KijijiUtils],
+
+            properties: {
+                /**
+                 * real-estate categories scraped from kijiji
+                 */
+                categories: {},
+                /**
+                 * list of regions and their cities
+                 */
+                regions: {
+                    type: Array,
+                    value: function() {
+                        return KijijiUtils.getRegions();
+                    },
+                    notify: true
+                },
+                /**
+                 * Select Region from dropdown
+                 */
+                selectedRegion: {
+                    type: Number,
+                    value: 7,
+                    observer: 'updateCitiesList',
+                    notify: true
+
+                },
+
+                /**
+                 * list of shown cities
+                 */
+                cities: {
+                    type: Array,
+                    notify: true
+                },
+
+                /**
+                 * Select City from dropdown
+                 */
+                selectedCity: {
+                    type: Number,
+                    value: 1,
+                    notify: true
+                },
+
+                /**
+                 * Selected category
+                 */
+                selectedCategory: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                /**
+                 * Number of Pages processed
+                 */
+                numberOfPages: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                /**
+                 * Ads processed
+                 */
+                adsProcessed: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                /**
+                 * Total number of links found in all pages processed.
+                 */
+                totalAds: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                /**
+                 * Number of ads that could not be found using geolocation
+                 */
+                adsMissed: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                /**
+                 * Kijiji argument for range of search
+                 */
+                mapRadius: {
+                    type: Number,
+                    value: 25,
+                    notify: true
+                },
+                /**
+                 * Kijiji argument for minimum price
+                 */
+                lowPrice: {
+                    type: Number,
+                    value: 0,
+                    notify: true
+                },
+                /**
+                 * Kijiji argument for maximum price
+                 */
+                highPrice: {
+                    type: Number,
+                    value: 9999999,
+                    notify: true
+                },
+                /**
+                 * Kijiji argument for keywords
+                 */
+                keywords: {
+                    type: String,
+                    value: '',
+                    notify: true
+                }
+            },
+
+            ready: function() {
+                this.set( 'regions', KijijiUtils.getRegions() );
+            },
+
+            attached: function() {
+                this.loadCategories();
+            },
+
+            /**
+             * Loads the categories from kijiji homepage.
+             */
+            loadCategories: function() {
+                var categories = [], categoryEls = [], dom, domParser, homePageContent, regions = [];
+                domParser = new DOMParser();
+
+                homePageContent = KijijiUtils.httpGetContent( 'http://www.kijiji.ca/h-' + this.cities[this.selectedCity].link + '?siteLocale=fr_CA' );
+
+                dom = domParser.parseFromString( homePageContent, "text/html" );
+                categoryEls = dom.querySelectorAll( '#Categories > section:nth-child(3) > ul:nth-child(1) a' );
+
+                // ignore first category, which is same as second (view all)
+                for( var i = 1, len = categoryEls.length; i < len; i++ ) {
+                    categories.push( {
+                        'name': categoryEls[i].textContent,
+                        'url': categoryEls[i].getAttribute( 'href' )
+                    } );
+                }
+
+                this.set( 'categories', categories );
+
+            },
+
+            /**
+             * Starts a search.
+             */
+            startSearch: function() {
+                this.clearMap();
+                this.loadCategories();
+                this.processPage( this.$.categoriesListBox.selectedItem.url );
+            },
+
+            /**
+             * Clears the map and resets any necessary variables.
+             */
+            clearMap: function() {
+                this.numberOfPages = 0;
+                this.adsProcessed = 0;
+                this.totalAds = 0;
+                this.adsMissed = 0;
+
+                for( var i = 0, len = timeouts.length; i < len; i++ ) {
+                    clearTimeout( timeouts[i] );
+                }
+
+                markers = this.$.googleMaps.markers;
+
+                for( var i = 0, len = markers.length; i < len; i++ ) {
+                    markers[i].map = null;
+                }
+                this.$.googleMaps.innerHTML = '';
+
+                this.$.googleMaps.fitToMarkers = true;
+
+            },
+
+            /**
+             * Processes a Kijiji page
+             *
+             * @param url - the page's url
+             */
+            processPage: function( url ) {
+                this.numberOfPages++;
+
+                var me = this, links = [], categoryContent, dom, domParser, nextPage, pageUrl;
+
+                domParser = new DOMParser();
+
+                if( me.keywords ) {
+                    url = url.slice( 0, url.lastIndexOf( '/' ) ) + '/' + me.keywords + '/k0' + url.slice( url.lastIndexOf( '/' ) ).replace( '/', '' );
+
+                }
+                pageUrl = "http://www.kijiji.ca" + url;
+
+                if( !pageUrl.includes( '?price=' ) ) {
+                    if( me.mapRadius > 0 ) {
+                        pageUrl = pageUrl + 'r' + me.mapRadius + '.0';
+                    }
+
+                    pageUrl = pageUrl + '?price=' + me.lowPrice + '__' + me.highPrice;
+                }
+
+                categoryContent = KijijiUtils.httpGetContent( pageUrl );
+                dom = domParser.parseFromString( categoryContent, "text/html" );
+
+                links = dom.getElementsByClassName( "enable-search-navigation-flag" );
+
+                me.totalAds = me.totalAds + links.length;
+
+                // Have to wait for the Google Maps api to load before using the Geocoder.
+                Array.from( links ).forEach( function( link ) {
+                    me.prepareAd( link.getAttribute( 'href' ) );
+                } );
+
+                nextPage = dom.querySelector( '.pagination a:nth-last-child(2)' );
+
+                if( nextPage != null && me.numberOfPages < 10 ) {
+                    setTimeout( function() {
+                        me.loadNextPage( nextPage.getAttribute( 'href' ) );
+                    }, 200 );
+                }
+            },
+
+            /**
+             * Prepares an ad before adding the marker
+             *
+             * @param urlAppendage - URL to ad page
+             */
+            prepareAd: function( urlAppendage ) {
+                var me = this;
+                var googleMaps = me.$.googleMaps;
+                var domParser = new DOMParser();
+                var xmlhttp = new XMLHttpRequest();
+
+                url = window.location.href + 'proxyAdPage.php?url=http://www.kijiji.ca' + urlAppendage;
+
+                xmlhttp.open( "GET", url, true );
+                xmlhttp.onload = function() {
+                    if( xmlhttp.readyState === XMLHttpRequest.DONE ) {
+
+                        var adDetails = [], adAttrTr = [], imageElements = [], contents, mapLink, rawAddress;
+
+                        contents = xmlhttp.responseText;
+
+                        adDetails = domParser.parseFromString( contents, "text/html" ).getElementById( "itemdetails" );
+
+                        imageElements = adDetails.querySelectorAll( "#ShownImage li img" );
+                        adDetails.images = [];
+
+                        for( var y = 0, ylen = imageElements.length; y < ylen; y++ ) {
+                            adDetails.images.push( imageElements[y].getAttribute( 'src' ) );
+                        }
+
+                        // Get the main details
+                        adAttrTr = adDetails.querySelectorAll( ".ad-attributes tr" );
+                        adDetails.adAttributes = [];
+                        for( var y = 0, ylen = adAttrTr.length; y < ylen; y++ ) {
+                            if( adAttrTr[y].querySelector( "th" ) ) {
+                                adDetails.adAttributes.push( {
+                                    'header': adAttrTr[y].querySelector( "th" ).textContent,
+                                    'value': adAttrTr[y].querySelector( "td" ).textContent
+                                } );
+                            }
+                        }
+
+                        // Get the Address
+                        mapLink = adDetails.querySelector( "#MapLink" )
+                        if( mapLink ) {
+                            rawAddress = mapLink.parentElement.outerText;
+
+                            adDetails.address = rawAddress.substr( 0, rawAddress.indexOf( '\n' ) );
+
+                            // Get the Ad's URL
+                            adDetails.url = 'http://www.kijiji.ca' + urlAppendage;
+
+                            // Get UserContent
+                            adDetails.details = adDetails.querySelector( '#UserContent' ).textContent.trim();
+
+                            me.addMarkerToMap( googleMaps, adDetails );
+                        } else {
+                            me.adsMissed++;
+                        }
+
+                    }
+                };
+
+                xmlhttp.send();
+            },
+
+            /**
+             * Finds a latitude and longitude based on an ad's address, creates a google-map-marker dom element and appends it to the Google Maps object.
+             *
+             * @param googleMaps
+             * @param adDetails
+             */
+            addMarkerToMap: function( googleMaps, adDetails ) {
+                var geocoder = new googleMaps.$.api.api.Geocoder(), me = this;
+
+                geocoder.geocode( {
+                            'address': adDetails.address
+                        },
+                        function( results, status ) {
+                            if( status == google.maps.GeocoderStatus.OK ) {
+                                var adAttributesHtml = '', contentString, imagesHtml = '', info, marker;
+
+                                marker = document.createElement( 'google-map-marker' );
+                                marker.setAttribute( 'latitude', results[0].geometry.location.lat() );
+                                marker.setAttribute( 'longitude', results[0].geometry.location.lng() );
+                                marker.setAttribute( 'click-events', 'true' );
+
+                                for( var i = 0, len = adDetails.images.length; i < len; i++ ) {
+                                    imagesHtml += '<td><a href="' + adDetails.images[i] +
+                                            '" target="_blank"><img src="' +
+                                            adDetails.images[i] +
+                                            '"/></a></td>';
+                                }
+
+                                for( var i = 0, len = adDetails.adAttributes.length; i < len; i++ ) {
+                                    adAttributesHtml += '<tr><td>' + adDetails.adAttributes[i].header +
+                                            '</td><td>' + adDetails.adAttributes[i].value + '</td></tr>';
+                                }
+
+                                marker.innerHTML = '<map-infowindow>' +
+                                        '<div id="imageContainerWrapper">' +
+                                        '<div id="imageContainer">' +
+                                        '<table>' +
+                                        '<tbody>' +
+                                        '<tr>' +
+                                        imagesHtml +
+                                        '</tr>' +
+                                        '</tbody>' +
+                                        '</table>' +
+                                        '</div>' +
+                                        '</div>' +
+                                        '<div id="detailsContainer">' +
+                                        '<table>' +
+                                        '<tbody>' +
+                                        adAttributesHtml +
+                                        '</tbody>' +
+                                        '</table>' +
+                                        '<p style="font-size: small;">' + adDetails.details + '</p>' +
+                                        '<p><a href="' + adDetails.url + '" target="_blank" >View Ad</a></p>' +
+                                        '</div>' +
+                                        '</map-infowindow>';
+
+                                Polymer.dom( googleMaps ).appendChild( marker );
+                                me.adsProcessed++;
+                            } else if( status == 'OVER_QUERY_LIMIT' ) {
+                                // Wait and try again
+                                timeouts.push( setTimeout( function() {
+                                    me.$.googleMaps.fitToMarkers = false;
+                                    me.addMarkerToMap( googleMaps, adDetails );
+                                }, 200 ) );
+                            } else {
+                                me.adsMissed++;
+                            }
+                        }
+                );
+            },
+
+            /**
+             *  Loads the next Kijiji page to the map.
+             *
+             * @param link
+             */
+            loadNextPage: function( link ) {
+                this.processPage( link );
+            },
+
+            /**
+             * Closes any open infowindows
+             *
+             * @param e
+             * @param detail
+             * @param sender
+             */
+            googleMapMarkerClicked: function( e, detail ) {
+                markers = this.$.googleMaps.markers;
+
+                activeMarker = e.path[0];
+
+                for( var i = 0, len = markers.length; i < len; i++ ) {
+                    if( markers[i] !== activeMarker ) {
+                        markers[i].open = false;
+                        markers[i].className = '';
+                    }
+                }
+            },
+
+            /**
+             * Handled the map drag action, currently only used for closing windows.
+             */
+            googleMapDragged: function() {
+                markers = this.$.googleMaps.markers;
+
+                for( var i = 0, len = markers.length; i < len; i++ ) {
+                    markers[i].open = false;
+                    markers[i].className = '';
+                }
+            },
+
+            /**
+             * Updates the Cities dropdown
+             */
+            updateCitiesList: function() {
+                this.set( 'cities', this.regions[this.selectedRegion].cities );
+                this.selectedCity = 0;
+            }
+        } );
+    </script>
+</dom-module>

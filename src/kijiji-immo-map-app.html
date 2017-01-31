@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kijiji-immo-map</title>
+
+    <link href="../bower_components/polymer/polymer.html" rel="import">
+
+    <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+    <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+    <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+    <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+    <link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+    <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+
+    <link rel="import" href="../bower_components/app-route/app-location.html">
+    <link rel="import" href="../bower_components/app-route/app-route.html">
+
+    <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+    <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+
+    <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+    <link rel="import" href="../bower_components/paper-item/paper-item.html">
+    <link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+    <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+    <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+    <link rel="import" href="../bower_components/paper-button/paper-button.html">
+    <link rel="import" href="../bower_components/iron-jsonp-library/iron-jsonp-library.html">
+
+    <link rel="import" href="styles/styles-global.html">
+
+    <link rel="import" href="kijiji-immo-map-icons.html">
+
+    <link rel="import" href="map/map-view.html">
+    <link rel="import" href="about/about-view.html">
+
+</head>
+<dom-module id="kijiji-immo-map-app">
+    <template>
+        <style include="styles-global iron-flex iron-flex-alignment">
+
+            /* toolbars */
+            app-toolbar {
+                background-color: var(--kijiji-immo-map-primary-color);
+                color: var(--kijiji-immo-map-font-light-color);
+            }
+
+            paper-tabs {
+                width: 50%;
+                margin: 0 auto;
+                --paper-tabs-selection-bar-color: var(--kijiji-immo-map-secondary-color);
+                text-transform: capitalize;
+            }
+
+            paper-item a {
+                color: var(--kijiji-immo-map-primary-color);
+                text-decoration: none;
+            }
+
+            map-view {
+                position: absolute;
+                top: 64px;
+                right: 0;
+                bottom: 0;
+                left: 0;
+            }
+        </style>
+
+        <app-drawer-layout class="layout vertical" fullbleed force-narrow>
+            <!--Mobile menu-->
+            <app-drawer id="drawer">
+                <app-toolbar>kijiji-immo-map</app-toolbar>
+
+                <paper-menu selected="{{selected}}" attr-for-selected="name">
+                    <paper-item name="0">Map</paper-item>
+                    <paper-item name="1">About</paper-item>
+                </paper-menu>
+            </app-drawer>
+
+            <!-- Desktop menu -->
+            <app-header-layout>
+                <app-header id="main-header">
+                    <app-toolbar>
+                        <!-- drawer toggle button not shown on desktop -->
+                        <paper-icon-button class="menu-button" icon="menu" drawer-toggle></paper-icon-button>
+                        <div class="logo" main-title><a href="/" aria-label="kijiji-immo-map Home">kijiji-immo-map</a>
+                        </div>
+                    </app-toolbar>
+                </app-header>
+            </app-header-layout>
+
+            <iron-pages id="iron-page-selector" selected="{{selected}}">
+                <map-view id="mapview"></map-view>
+                <about-view id="aboutview"></about-view>
+            </iron-pages>
+        </app-drawer-layout>
+
+    </template>
+</dom-module>
+<script>
+    Polymer( {
+        is: 'kijiji-immo-map-app',
+        properties: {
+            selected: {
+                type: Number,
+                value: 0,
+                notify: true,
+                reflectToAttribute: true
+            },
+            items: {
+                type: Array,
+                value: function() {
+                    return ['map', 'about'];
+                }
+            }
+        }
+    } )
+</script>
+</html>

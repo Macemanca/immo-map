@@ -1,0 +1,80 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<dom-module id="about-view">
+    <template>
+        <style include="styles-global">
+            .disclaimer {
+                background-color: var(--content-background-color);
+                margin: 10% auto 0;
+                width: 80%;
+                padding: 10px;
+                border-radius: 10px;
+            }
+        </style>
+        <template is="dom-if" if="[[afficherAnglais]]">
+            <div id="en-disclaimer" class="disclaimer">
+
+                <paper-button raised on-tap="toggleLang" id="fr-btn">Français</paper-button>
+                <h2>A message from the creator:</h2>
+
+                <p>
+                    The ad content found on this page comes part from <a href="http://kijiji.ca">kijiji.ca</a>.
+                </p>
+                <p>
+                    The information on this website is provided for educational or information purposes only; it is not
+                    intended to be a substitute for professional advice, legal, or otherwise.</p>
+                <p>
+
+                    This site may contain links to other sites. These links are provided as references to help users
+                    identify and locate other internet resources that may be of interest. </p>
+                <p>
+                    Parties other than myself independently develop and maintain these other sites. I do not assume
+                    responsibility for the accuracy or appropriateness of the information contained at such
+                    sites. </p>
+            </div>
+        </template>
+        <template is="dom-if" if="[[!afficherAnglais]]">
+            <div id="fr-disclaimer" class="disclaimer">
+                <paper-button raised on-tap="toggleLang" id="en-btn">English</paper-button>
+                <h2> Un message du créateur:</h2>
+                <p>Le contenu des annonces sur cette page provient de <a href="http://kijiji.ca">kijiji.ca</a>. </p>
+                <p>
+                    Les informations contenues sur ce site web sont fournies à des fins éducatives ou informatives
+                    uniquement;
+                    Il n'est pas destiné à remplacer les conseils professionnels, juridiques ou autres.
+                </p>
+                <p>
+                    Ce site peut contenir des liens vers d'autres sites. Ces liens sont fournis comme des références
+                    pour
+                    aider les utilisateurs à identifier et à localiser d'autres ressources internet qui pourraient vous
+                    intéresser.
+                </p>
+                <p>
+                    Des parties autres que moi-même développent et entretiennent indépendamment ces autres sites.
+                    J'assume
+                    aucune responsabilité conçernant l'exactitude ou à la pertinence des informations contenues sur ces
+                    sites.
+                </p>
+            </div>
+        </template>
+    </template>
+    <script>
+        Polymer( {
+            /**
+             * Used to convey message to user.
+             */
+            is: 'about-view',
+            attached: function() {
+                this.afficherAnglais = false;
+            },
+
+            /**
+             * toggles between french and english.
+             */
+            toggleLang: function() {
+                this.afficherAnglais = !this.afficherAnglais;
+            },
+        } );
+    </script>
+</dom-module>

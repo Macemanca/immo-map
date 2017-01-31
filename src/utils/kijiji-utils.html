@@ -1,0 +1,356 @@
+<script>
+    KijijiUtils = {
+        /**
+         * Utils class for Kijiji actions.
+         */
+        is: 'kijiji-utils',
+
+        /**
+         * Get's a web page's HTML contents
+         *
+         * @param url
+         * @returns {*}
+         */
+        httpGetContent: function( url ) {
+            url = window.location.href + 'proxypage.php?url=' + url;
+
+            if( window.XMLHttpRequest ) {
+                xmlhttp = new XMLHttpRequest();
+            } else {
+                xmlhttp = new ActiveXObject( "Microsoft.XMLHTTP" );
+            }
+
+            xmlhttp.open( "GET", url, false );
+            xmlhttp.send();
+
+            if( xmlhttp.readyState == 4 && xmlhttp.status == 200 ) {
+                return xmlhttp.responseText;
+            }
+
+            return false;
+        },
+
+        /**
+         * Returns a 2-dimensional array containing regions and their provinces.
+         *
+         * @returns {Array}
+         */
+        getRegions: function() {
+            var rawRegions = [], regions = [], regionStrings = [], cityStrings = [];
+
+            regions = [
+                {
+                    nameEn: 'Alberta', nameFr: 'Alberta', cities: [
+                    {name: "Afficher Tout", link: "alberta/9003"},
+                    {name: "Banff", link: "banff-canmore/1700234"},
+                    {name: "Calgary", link: "calgary/1700199"},
+                    {name: "Edmonton area", link: "edmonton-area/1700202"},
+                    {name: "Edmonton", link: "edmonton/1700203"},
+                    {name: "Fort mcmurray", link: "fort-mcmurray/1700232"},
+                    {name: "Grande prairie", link: "grande-prairie/1700233"},
+                    {name: "Lethbridge", link: "lethbridge/1700230"},
+                    {name: "Lloydminster", link: "lloydminster-ab/1700095"},
+                    {name: "Medicine hat", link: "medicine-hat/1700231"},
+                    {name: "Red deer", link: "red-deer/1700136"},
+                    {name: "St. albert", link: "st-albert/1700205"},
+                    {name: "Strathcona county", link: "strathcona-county/1700204"}
+                ]
+                },
+
+                {
+                    nameEn: 'British columbia',
+                    nameFr: 'Colombie-Britannique ',
+                    cities: [
+                        {name: "Afficher Tout", link: "british-columbia/9007"},
+                        {name: "100 mile house", link: "100-mile-house/1700307"},
+                        {name: "Abbotsford", link: "abbotsford/1700140"},
+                        {name: "Burnaby", link: "burnaby-new-westminster/1700286"},
+                        {name: "Burns lake", link: "burns-lake/1700314"},
+                        {name: "Campbell river", link: "campbell-river/1700316"},
+                        {name: "Cariboo area", link: "cariboo-area/1700296"},
+                        {name: "Chilliwack", link: "chilliwack/1700141"},
+                        {name: "Comox valley area", link: "comox-valley-area/1700298"},
+                        {name: "Comox", link: "comox-courtenay-cumberland/1700315"},
+                        {name: "Courtenay", link: "comox-courtenay-cumberland/1700315"},
+                        {name: "Cowichan valley", link: "cowichan-valley-duncan/1700300"},
+                        {name: "Cranbrook", link: "cranbrook/1700224"},
+                        {name: "Cumberland", link: "comox-courtenay-cumberland/1700315"},
+                        {name: "Dawson creek", link: "dawson-creek/1700304"},
+                        {name: "Delta", link: "delta-surrey-langley/1700285"},
+                        {name: "Downtown-west end", link: "vancouver-downtown-west-end/1700292"},
+                        {name: "Duncan", link: "cowichan-valley-duncan/1700300"},
+                        {name: "Fort st. john", link: "fort-st-john/1700303"},
+                        {name: "Fraser valley", link: "fraser-valley/1700139"},
+                        {name: "Greater vancouver area", link: "greater-vancouver-area/80003"},
+                        {name: "Hope / kent", link: "hope-kent/1700320"},
+                        {name: "Houston", link: "houston-bc/1700313"},
+                        {name: "Kamloops", link: "kamloops/1700227"},
+                        {name: "Kelowna", link: "kelowna/1700228"},
+                        {name: "Kitimat", link: "kitimat/1700310"},
+                        {name: "Langley", link: "delta-surrey-langley/1700285"},
+                        {name: "Mission", link: "mission/1700319"},
+                        {name: "Nanaimo", link: "nanaimo/1700263"},
+                        {name: "Nelson", link: "nelson/1700226"},
+                        {name: "New westminster", link: "burnaby-new-westminster/1700286"},
+                        {name: "North shore", link: "north-shore/1700289"},
+                        {name: "Oceanside", link: "port-alberni-oceanside/1700299"},
+                        {name: "Parksville", link: "parksville-qualicum-beach/1700317"},
+                        {name: "Peace river area", link: "peace-river-area/1700295"},
+                        {name: "Penticton", link: "penticton/1700246"},
+                        {name: "Port alberni", link: "port-alberni/1700318"},
+                        {name: "Port hardy / port mcneill", link: "port-hardy-port-mcneill/1700301"},
+                        {name: "Powell river district", link: "powell-river-district/1700294"},
+                        {name: "Prince george", link: "prince-george/1700143"},
+                        {name: "Prince rupert", link: "prince-rupert/1700308"},
+                        {name: "Qualicum beach", link: "parksville-qualicum-beach/1700317"},
+                        {name: "Quesnel", link: "quesnel/1700306"},
+                        {name: "Revelstoke", link: "revelstoke/1700302"},
+                        {name: "Richmond", link: "richmond-bc/1700288"},
+                        {name: "Skeena-bulkley area", link: "skeena-bulkley-area/1700297"},
+                        {name: "Smithers", link: "smithers/1700311"},
+                        {name: "Sunshine coast", link: "sunshine-coast/1700293"},
+                        {name: "Surrey", link: "delta-surrey-langley/1700285"},
+                        {name: "Terrace", link: "terrace/1700309"},
+                        {name: "Tricities/pitt/maple", link: "tricities-pitt-maple/1700290"},
+                        {name: "Ubc", link: "ubc-university-british-columbia/1700291"},
+                        {name: "Vancouver", link: "vancouver/1700287"},
+                        {name: "Vanderhoof", link: "vanderhoof/1700312"},
+                        {name: "Vernon", link: "vernon/1700229"},
+                        {name: "Victoria", link: "victoria-bc/1700173"},
+                        {name: "Whistler", link: "whistler/1700100"},
+                        {name: "Williams lake", link: "williams-lake/1700305"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Manitoba',
+                    nameFr: 'Manitoba',
+                    cities: [
+                        {name: "Afficher Tout", link: "manitoba/9006"},
+                        {name: "Brandon area", link: "brandon-area/1700085"},
+                        {name: "Brandon", link: "brandon/1700086"},
+                        {name: "Flin flon", link: "flin-flon/1700236"},
+                        {name: "Portage la prairie", link: "portage-la-prairie/1700087"},
+                        {name: "Thompson", link: "thompson/1700235"},
+                        {name: "Winnipeg", link: "winnipeg/1700192"}
+                    ]
+                },
+
+                {
+                    nameEn: 'New Brunswick',
+                    nameFr: 'Nouveau-Brunswick ',
+                    cities: [
+                        {name: "Afficher Tout", link: "new-brunswick/9005"},
+                        {name: "Bathurst", link: "bathurst/1700260"},
+                        {name: "Edmundston", link: "edmundston/1700261"},
+                        {name: "Fredericton", link: "fredericton/1700018"},
+                        {name: "Miramichi", link: "miramichi/1700262"},
+                        {name: "Moncton", link: "moncton/1700001"},
+                        {name: "Saint john", link: "saint-john/80017"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Newfoundland',
+                    nameFr: 'Terre-Neuve',
+                    cities: [
+                        {name: "Afficher Tout", link: "newfoundland/9008"},
+                        {name: "Corner brook", link: "corner-brook/1700254"},
+                        {name: "Goose bay", link: "goose-bay/1700045"},
+                        {name: "St. john's", link: "st-johns/1700113"},
+                        {name: "Gander", link: "gander/1700255"},
+                        {name: "Labrador", link: "labrador/1700044"},
+                        {name: "Labrador city", link: "labrador-city/1700046"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Nova scotia',
+                    nameFr: 'Nouvelle-Écosse',
+                    cities: [
+                        {name: "Afficher Tout", link: "nova-scotia/9002"},
+                        {name: "Annapolis valley", link: "annapolis-valley/1700256"},
+                        {name: "Bedford", link: "bedford/1700107"},
+                        {name: "Bridgewater", link: "bridgewater/1700257"},
+                        {name: "Cape breton", link: "cape-breton/1700011"},
+                        {name: "City of halifax", link: "city-of-halifax/1700321"},
+                        {name: "Cole harbour", link: "cole-harbour/1700108"},
+                        {name: "Dartmouth", link: "dartmouth/1700109"},
+                        {name: "Halifax", link: "halifax/80010"},
+                        {name: "New glasgow", link: "new-glasgow-ns/1700258"},
+                        {name: "Truro", link: "truro/1700047"},
+                        {name: "Yarmouth", link: "yarmouth/1700259"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Ontario',
+                    nameFr: 'Ontario',
+                    cities: [
+                        {name: "Afficher Tout", link: "ontario/9004"},
+                        {name: "BARRIE", link: "barrie/1700006"},
+                        {name: "Belleville area", link: "belleville-area/1700129"},
+                        {name: "Belleville", link: "belleville/1700130"},
+                        {name: "Brantford", link: "brantford/1700206"},
+                        {name: "Brockville", link: "brockville/1700247"},
+                        {name: "Cambridge", link: "cambridge/1700210"},
+                        {name: "Charlottetown", link: "charlottetown-pei/1700119"},
+                        {name: "Chatham-kent", link: "chatham-kent/1700239"},
+                        {name: "City of toronto", link: "city-of-toronto/1700273"},
+                        {name: "Cornwall", link: "cornwall-on/1700133"},
+                        {name: "Durham region", link: "oshawa-durham-region/1700275"},
+                        {name: "Gatineau", link: "gatineau/1700186"},
+                        {name: "Grand bend", link: "grand-bend/1700190"},
+                        {name: "Guelph", link: "guelph/1700242"},
+                        {name: "Halton region", link: "oakville-halton-region/1700277"},
+                        {name: "Hamilton", link: "hamilton/80014"},
+                        {name: "Kapuskasing", link: "kapuskasing/1700237"},
+                        {name: "Kawartha lakes", link: "kawartha-lakes/1700219"},
+                        {name: "Kenora", link: "kenora/1700249"},
+                        {name: "Kingston area", link: "kingston-area/1700181"},
+                        {name: "Kingston", link: "kingston-on/1700183"},
+                        {name: "Kitchener / waterloo", link: "kitchener-waterloo/1700212"},
+                        {name: "Kitchener area", link: "kitchener-area/1700209"},
+                        {name: "Leamington", link: "leamington/1700240"},
+                        {name: "London", link: "london/1700214"},
+                        {name: "Markham", link: "markham-york-region/1700274"},
+                        {name: "Mississauga", link: "mississauga-peel-region/1700276"},
+                        {name: "Muskoka", link: "muskoka/1700078"},
+                        {name: "Napanee", link: "napanee/1700182"},
+                        {name: "Norfolk county", link: "norfolk-county/1700248"},
+                        {name: "North bay", link: "north-bay/1700243"},
+                        {name: "Oakville", link: "oakville-halton-region/1700277"},
+                        {name: "Oshawa", link: "oshawa-durham-region/1700275"},
+                        {name: "Ottawa / gatineau area", link: "ottawa-gatineau-area/1700184"},
+                        {name: "Ottawa", link: "ottawa/1700185"},
+                        {name: "Owen sound", link: "owen-sound/1700187"},
+                        {name: "Peel region", link: "mississauga-peel-region/1700276"},
+                        {name: "Pembroke", link: "pembroke/1700075"},
+                        {name: "Petawawa", link: "petawawa/1700076"},
+                        {name: "Peterborough area", link: "peterborough-area/1700217"},
+                        {name: "Peterborough", link: "peterborough/1700218"},
+                        {name: "Prince edward island", link: "prince-edward-island/1700118"},
+                        {name: "Renfrew county area", link: "renfrew-county-area/1700074"},
+                        {name: "Renfrew", link: "renfrew/1700077"},
+                        {name: "Sarnia area", link: "sarnia-area/1700189"},
+                        {name: "Sarnia", link: "sarnia/1700191"},
+                        {name: "Sault ste. marie", link: "sault-ste-marie/1700244"},
+                        {name: "St. catharines", link: "st-catharines/80016"},
+                        {name: "Stratford", link: "stratford-on/1700213"},
+                        {name: "Sudbury", link: "sudbury/1700245"},
+                        {name: "Summerside", link: "summerside-pei/1700120"},
+                        {name: "Thunder bay", link: "thunder-bay/1700126"},
+                        {name: "Timmins", link: "timmins/1700238"},
+                        {name: "Toronto", link: "gta-greater-toronto-area/1700272"},
+                        {name: "Trenton", link: "trenton-on/1700132"},
+                        {name: "Windsor region", link: "windsor-area-on/1700220"},
+                        {name: "Woodstock", link: "woodstock-on/1700241"},
+                        {name: "York region", link: "markham-york-region/1700274"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Quebec',
+                    nameFr: 'Québec',
+                    cities: [
+                        {name: "Afficher Tout", link: "quebec/9001"},
+                        {name: "Abitibi-témiscamingue", link: "abitibi-temiscamingue/1700059"},
+                        {name: "Baie-comeau", link: "baie-comeau/1700251"},
+                        {name: "Centre-du-quebec", link: "centre-du-quebec/1700121"},
+                        {name: "Chaudière-appalaches", link: "chaudiere-appalaches/1700062"},
+                        {name: "Chibougamau", link: "chibougamau-nord-du-quebec/1700284"},
+                        {name: "Drummondville", link: "drummondville/1700122"},
+                        {name: "Gaspésie", link: "gaspesie/1700066"},
+                        {name: "Granby", link: "granby/1700253"},
+                        {name: "Grand montréal", link: "grand-montreal/80002"},
+                        {name: "Lévis", link: "levis/1700063"},
+                        {name: "Lac-saint-jean", link: "lac-saint-jean/1700180"},
+                        {name: "Lanaudière", link: "lanaudiere/1700283"},
+                        {name: "Laurentides", link: "laurentides/1700282"},
+                        {name: "Laval/rive nord", link: "laval-rive-nord/1700278"},
+                        {name: "Longueuil/rive sud", link: "longueuil-rive-sud/1700279"},
+                        {name: "Mauricie", link: "mauricie/1700147"},
+                        {name: "Nord-du-quebec", link: "chibougamau-nord-du-quebec/1700284"},
+                        {name: "Ouest de l’île", link: "ouest-de-lile-qc/1700280"},
+                        {name: "Rimouski / bas-st-laurent", link: "rimouski-bas-st-laurent/1700250"},
+                        {name: "Rouyn-noranda", link: "rouyn-noranda/1700060"},
+                        {name: "Saguenay", link: "saguenay/1700179"},
+                        {name: "Saguenay-lac-saint-jean", link: "saguenay-lac-saint-jean/1700178"},
+                        {name: "Saint-hyacinthe", link: "saint-hyacinthe/1700151"},
+                        {name: "Saint-jean-sur-richelieu", link: "saint-jean-sur-richelieu/1700252"},
+                        {name: "Sept-îles", link: "sept-iles/1700071"},
+                        {name: "Shawinigan", link: "shawinigan/1700148"},
+                        {name: "Sherbrooke", link: "sherbrooke-qc/1700156"},
+                        {name: "St-georges-de-beauce", link: "st-georges-de-beauce/1700065"},
+                        {name: "Thetford mines", link: "thetford-mines/1700064"},
+                        {name: "Trois-rivières", link: "trois-rivieres/1700150"},
+                        {name: "Val d'or", link: "val-dor/1700061"},
+                        {name: "Victoriaville", link: "victoriaville/1700123"},
+                        {name: "Ville de montréal", link: "ville-de-montreal/1700281"},
+                        {name: "Ville de quebec", link: "ville-de-quebec/1700124"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Saskatchewan',
+                    nameFr: 'Saskatchewan',
+                    cities: [{name: "Afficher Tout", link: "saskatchewan/9009"},
+                        {name: "La ronge", link: "la-ronge/1700265"},
+                        {name: "Meadow lake", link: "meadow-lake/1700264"},
+                        {name: "Moose jaw", link: "moose-jaw/1700195"},
+                        {name: "Nipawin", link: "nipawin/1700266"},
+                        {name: "Prince albert", link: "prince-albert/1700088"},
+                        {name: "Regina area", link: "regina-area/1700194"},
+                        {name: "Regina", link: "regina/1700196"},
+                        {name: "Saskatoon", link: "saskatoon/1700197"},
+                        {name: "Swift current", link: "swift-current/1700093"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Yukon',
+                    nameFr: 'Yukon',
+                    cities: [
+                        {name: "Afficher Tout", link: "yukon/1700101"},
+                        {name: "Whitehorse", link: "whitehorse/1700102"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Northwest territories',
+                    nameFr: 'Territoires du Nord-Ouest',
+                    cities: [
+                        {name: "Afficher Tout", link: "northwest-territories/1700103"},
+                        {name: "Yellowknife", link: "yellowknife/1700104"}
+                    ]
+                },
+
+                {
+                    nameEn: 'Nunavut',
+                    nameFr: 'Nunavut',
+                    cities: [
+                        {name: "Afficher Tout", link: "nunavut/1700105"},
+                        {name: "Iqaluit", link: "iqaluit/1700106"}
+                    ]
+                }
+            ];
+
+            regionStrings = Object.keys( rawRegions );
+
+            for( var i = 0, lenR = regionStrings.length; i < lenR; i++ ) {
+                console.log( regionStrings[i] );
+                cityStrings = Object.keys( rawRegions[regionStrings[i]] );
+                regions.push( {name: regionStrings[i], cities: []} );
+
+                for( var j = 0, lenC = cityStrings.length; j < lenC; j++ ) {
+                    regions[i].cities.push( {
+                        name: cityStrings[j],
+                        link: rawRegions[regionStrings[i]][cityStrings[j]]
+                    } );
+                }
+            }
+            return regions;
+        }
+    };
+
+</script>

@@ -1,0 +1,30 @@
+
+<link rel="import" href="../../bower_components/google-map/google-map-marker.html">
+
+
+<dom-module id="map-infowindow">
+    <template>
+        <style>
+            :host ::content #imageContainerWrapper {
+                width: 100%;
+
+                overflow-x: auto;
+            }
+
+            :host ::content #imageContainer img {
+                height: 200px;
+                padding-right: 5px;
+
+            }
+        </style>
+        <content></content>
+    </template>
+    <script>
+        Polymer( {
+            /**
+             * Infowindow to insert into google markers.
+             */
+            is: 'map-infowindow',
+        } )
+    </script>
+</dom-module>
